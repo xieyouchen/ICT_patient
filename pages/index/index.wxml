@@ -1,41 +1,15 @@
-<swiper autoplay="1" circular="true" indicator-dots="3">
-  <swiper-item>
-    <image src="../../icon/11.jpg" mode="widthFix"></image>
-  </swiper-item>
-  <swiper-item>
-    <image src="../../icon/12.jpg" mode="widthFix"></image>
-  </swiper-item>
-  <swiper-item>
-    <image src="../../icon/13.jpg" mode="widthFix"></image>
-  </swiper-item>
-  <swiper-item>
-    <image src="../../icon/14.jpg" mode="widthFix"></image>
-  </swiper-item>
-</swiper>
+<scroll-view scroll-y class="scroll" style="height:100%">
+  <view class="first_tab" wx:for="{{patientList}}" data-index="{{index}}">
+    <view class="goods_item">
+        <image class="goods_img_wrap" src="{{item.img}}" mode="widthFix" style="width:15%; display:flex; flex-direction: column; justify-content: center;align-items: center; margin-top: 5px;">
+        </image>
+        <navigator class="goods_img_wrap" url="/packageA/pages/chat/chat?id={{item._id}}" open-type="navigate" style="width: 100%;">
+          <view class="goods_info_wrap">
+            <view class="goods_name">{{item.name}}</view>
+            <view class="goods_price" style="color:#cccc;">{{item.content}}</view>
+          </view>
+      </navigator>
 
-<Tab tabs="{{tabs}}" binditemchange="itemChange">
-  <!-- 蓝牙连接 -->
-  <block wx:if="{{tabs[0].isactive}}">
-    <scroll-view scroll-y style="height:60%" class="scroll">
-      <view wx:for="{{devs}}" class="item" data-dev="{{item}}" data-name="{{item.name}}" bindtap="connect"
-        wx:if="{{item.name!=''}}">
-        <view class="rss">RSSI：{{item.RSSI}}</view>
-        <view class="name">{{item.name}}</view>
-        <view class="uuid">DeviceId：{{item.deviceId}}</view>
-      </view>
-    </scroll-view>
-  </block>
-  <block wx:elif="{{tabs[1].isactive}}">
-    <view class="floor" wx:for="{{floor}}" wx:for-item="item1" wx:for-index="index1" wx:key="id">
-      <view class="floor_container">
-        <view class="floor_title">{{item1.name}}</view>
-        <navigator class="floor_item" wx:for="{{item1.contain}}" wx:for-item="item2" wx:for-index="index2"
-          wx:key="id_sec">
-          {{item2.name_sec}}</navigator>
-      </view>
     </view>
-  </block>
-  <!-- <block wx:elif="{{tabs[2].isactive}}">
-      <cates cates="{{cates1}}" binditemchange="c_itemChange"></cates>
-  </block> -->
-</Tab>
+  </view>
+</scroll-view>

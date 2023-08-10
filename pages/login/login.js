@@ -3,6 +3,7 @@
 const app = getApp()
 const DB1 = wx.cloud.database().collection("IOT_Doctor")
 const DB2 = wx.cloud.database().collection("IOT_Patient")
+const db = wx.cloud.database()
 let mynote = []
 let userdata = [];
 Page({
@@ -81,7 +82,11 @@ Page({
             month: '11',
             day: '20'
           }
-        ]
+        ],
+        name: '董园',
+        age:  46,
+        workplace: '曙光医院',
+        expertise: '内科'
         },
         index: null,
         defaultimg: "/icon/LOGO.jpg",
@@ -335,14 +340,18 @@ Page({
         this.data.tabs[0].isactive = false;
     },
     onLoad: function (options) {
+      let app = getApp()
+      console.log("app", app.globalData)
+      this.chooseD()
       // 获取是否取得了身份信息
       this.setData({
         flag: app.globalData.haveFlag
       })
-      
-      if (app.globalData.userInfo) {
+      let user = wx.getStorageSync('userInfo')
+      console.log('user', user)
+      if (user) {
         this.setData({
-          userInfo: app.globalData.userInfo,
+          userInfo: user,
           hasUserInfo: true
         })
       } else if (this.data.canIUse){
@@ -366,29 +375,26 @@ Page({
           }
         })
       }
+
+
       
-      /*
-      let _this=this;
-      wx.showActionSheet({
-        itemList: _this.data.itemList,     
-        success: function (res) {    
-          if (!res.cancel) {    
-            console.log(typeof res.tapIndex)//这里是点击了那个按钮的下标   
-            _this.setData({
-              mode:_this.data.itemList[res.tapIndex]
-            })
-          }
-    
-        }
-    
-      })*/
       //从其他页面返回本页面时获取参数
       if(this.data.open_ID!="")
       {
         if(this.data.flag==1)this.get_infoD();
         if(this.data.flag==2)this.get_infoP();
       }
-      console.log('flag',this.data.flag);
+      console.log('flag',this.data.userInfo.open_ID);
+      if(this.data.userInfo.open_ID == "oTvD95KyTP9kIUG6eIGrNI_GDVpQ") {
+        let userInfo = {
+          avatarUrl : "cloud://iot-8gzcpk60587cea1b.696f-iot-8gzcpk60587cea1b-1314055828/4801690185645_.pic.jpg",
+          nickName: "Hypnotic.",
+          open_ID: "oTvD95KyTP9kIUG6eIGrNI_GDVpQ"
+        }
+        this.setData({
+          userInfo
+        })
+      }
     },
     getUserInfo: function(e) {
         console.log(e)
@@ -396,6 +402,34 @@ Page({
         this.setData({
             userInfo: e.detail.userInfo,
             hasUserInfo: true
+        })
+        wx.getUserProfile({
+          desc: '将获得您的微信头像和昵称',
+          success: res => {
+            console.log("昵称和头像", res)
+            let user = res.userInfo
+            let app = getApp()
+            user['open_ID'] = app.globalData.open_ID
+            let userInfo = {
+              nickName: user.nickName,
+              avatarUrl: user.avatarUrl,
+              open_ID: user.open_ID
+            }
+            this.setData({
+              userInfo
+            })
+            wx.setStorageSync('userInfo', userInfo)
+            db.collection('users').add({
+              data: {
+                avatarUrl: user.avatarUrl,
+                nickName: user.nickName,
+                open_ID: user.open_ID
+              }
+            })
+          },
+          fail: res => {
+            console.log("getUserProfile 失败", res)
+          }
         })
     },
     chooseP: function(){

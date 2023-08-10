@@ -2,9 +2,12 @@
 //获取应用实例
 const app = getApp()
 const DB = wx.cloud.database().collection("IOT_Patient")
+const db = wx.cloud.database()
 Page({
   data: {
     // 蓝牙模块数据
+    to: "oTvD95GRhDLbf7pkJI-mcDCzWfTk",
+    mine: "oTvD95KyTP9kIUG6eIGrNI_GDVpQ",
     devs: [],
     motto: 'Hello World！',
     userInfo: {},
@@ -12,7 +15,7 @@ Page({
     itemList: ['病人', '医生'],
     hasUserInfo: false,
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
-    patientlist: [],
+    patientList: [],
     floor: [{
         id: 0,
         name: "早间数据",
@@ -66,8 +69,12 @@ Page({
   customData: {
     _devs: []
   },
+  Debug(name, content) {
+    console.log(name)
+    console.log(content)
+  },
   itemChange(e) {
-    //console.log(e);
+    this.Debug("选择的蓝牙信息", e)
     const {
       index
     } = e.detail;
@@ -77,95 +84,6 @@ Page({
       tabs
     })
   },
-  // c_itemChange(e) {
-  //     // console.log(e);
-  //     const { index } = e.detail;
-  //     let cates1 = this.data.cates1;
-  //     cates1.forEach((v, i) => i === index ? v.isActive = true : v.isActive = false);
-  //     this.setData({
-  //             cates1
-  //         })
-  //         // cates1.forEach((v, i) => i === index ? v.isActive = true : v.isActive = false);
-  //     const target = '';
-  //     switch (index) {
-  //         case 0:
-  //             //console.log(index);
-  //             wx.navigateTo({
-  //                 url: '../math/math',
-  //                 success: function(res) {
-  //                     console.log("success0");
-  //                 },
-  //                 fail: function() {
-  //                     // fail
-  //                 },
-  //                 complete: function() {
-  //                     // complete
-  //                 }
-  //             });
-  //             break;
-
-  //         case 1:
-  //             //console.log(index);
-  //             wx.navigateTo({
-  //                 url: '../physics/physics',
-  //                 success: function(res) {
-  //                     console.log("success1");
-  //                 },
-  //                 fail: function() {
-  //                     // fail
-  //                 },
-  //                 complete: function() {
-  //                     // complete
-  //                 }
-  //             })
-  //             break;
-  //         case 2:
-  //             //console.log(index);
-  //             wx.navigateTo({
-  //                 url: '../english/english',
-  //                 success: function(res) {
-  //                     console.log("success2");
-  //                 },
-  //                 fail: function() {
-  //                     // fail
-  //                 },
-  //                 complete: function() {
-  //                     // complete
-  //                 }
-  //             })
-  //             break;
-  //         case 3:
-  //             //console.log(index);
-  //             wx.navigateTo({
-  //                 url: '../cs/cs',
-  //                 success: function(res) {
-  //                     console.log("success3");
-  //                 },
-  //                 fail: function() {
-  //                     // fail
-  //                 },
-  //                 complete: function() {
-  //                     // complete
-  //                 }
-  //             })
-  //             break;
-  //         case 4:
-  //             //console.log(index);
-  //             wx.navigateTo({
-  //                 url: '../others/others',
-  //                 success: function(res) {
-  //                     console.log("success4");
-  //                 },
-  //                 fail: function() {
-  //                     // fail
-  //                 },
-  //                 complete: function() {
-  //                     // complete
-  //                 }
-  //             })
-  //             break;
-  //     }
-  // },
   //事件处理函数
   bindViewTap: function () {
     wx.navigateTo({
@@ -178,13 +96,84 @@ Page({
       success(res) {
         console.log("查询成功", res.data);
         that.setData({
-          patientlist: res.data
+          patientList: res.data
         })
       },
       fail(res) {
-        console.log("查询失败", res)
+        console.log("数据库访问查询失败", res)
       }
     })
+  },
+  async getAvtarAndName(anotherId) {
+    return new Promise((resolve) => {
+      db.collection('users').where({
+          open_ID: anotherId
+        }).get()
+        .then(res => {
+          // 只需要头像和名字
+          let data = res.data[0]
+          let avatar = data.avatarUrl
+          let nickName = data.nickName
+          let user = {
+            avatar,
+            nickName
+          }
+          resolve(user)
+        })
+    })
+  },
+  getAnotherId(e) {
+    let userId = e.userId
+    let app = getApp()
+    let openId = app.globalData.open_ID
+    return userId === openId ? e.anotherId : e.userId
+  },
+  getPatientList(data) {
+    data.forEach(e => {
+      let newsId = e.newsId
+      let anotherId = this.getAnotherId(e)
+      db.collection('news').doc(newsId).get()
+        .then(async (res) => {
+          // 只需要内容和时间
+          let content = res.data.text
+          let time = res.data.time
+          let user = await this.getAvtarAndName(anotherId)
+          let patientList = []
+          patientList.push({
+            content,
+            time,
+            img: user['avatar'],
+            _id: anotherId,
+            name: user['nickName']
+          })
+          this.setData({
+            patientList
+          })
+          console.log(patientList)
+        })
+    })
+  },
+  watchLatestNews() {
+    let that = this
+    let myOpenID = this.data.mine
+    db.collection('latestNews').where(db.command.or([{
+        userId: myOpenID
+      }, {
+        anotherId: myOpenID
+      }]))
+      .watch({
+        onChange: function (snapshot) {
+          console.log('snapshot in latestNews', snapshot)
+          let data = snapshot.docs
+          // 肯定只有一个记录
+          // patientList[i]._id 表示对方的 id 号
+          // if(this.data.patientList)
+          that.getPatientList(data)
+        },
+        onError: function (err) {
+          console.error('the watch closed because of error', err)
+        }
+      })
   },
   onLoad: function (options) {
     // 获取当前用户是医生还是病人的信息,1：医生，2：病人
@@ -196,9 +185,6 @@ Page({
           name: "蓝牙连接",
           isactive: true
         }]
-
-        // ['tabs[0].name']:'蓝牙连接',
-        // ['tabs[1].name']:'数据获取'
       })
     }
     this.setData({
@@ -243,101 +229,12 @@ Page({
         showCancel: false
       })
     }
-
-    /**
-     * 微信蓝牙模块初始化
-     */
-    const self = this
-    wx.openBluetoothAdapter({
-      success: function (res) {
-        // console.log('search.js[onLoad]: openBluetoothAdapter success')
-        app.globalData.BluetoothState = true
-        self.startSearchDevs() // 搜索附近蓝牙
-      },
-      fail: function (err) {
-        // console.log('search.js[onLoad]: openBluetoothAdapter fail')
-        if (err.errCode === 10001) { // 手机蓝牙未开启
-          app.globalData.BluetoothState = false
-          wx.showLoading({
-            title: '请开启手机蓝牙',
-          })
-        } else {
-          console.log(err.errMsg)
-        }
-      }
-    })
-    /**
-     * 监听蓝牙适配器状态变化
-     */
-    wx.onBluetoothAdapterStateChange(function (res) {
-      // console.log('search.js[onLoad]: onBluetoothAdapterStateChange')
-      if (res.available) {
-        // console.log('search.js[onLoad]: BluetoothState is true')
-        app.globalData.BluetoothState = true
-        wx.openBluetoothAdapter({
-          success: function (res) {
-            app.globalData.BluetoothState = true
-            wx.hideLoading()
-          },
-        })
-      } else {
-        // console.log('search.js[onLoad]: BluetoothState is false')
-        app.globalData.BluetoothState = false
-        app.globalData.connectState = false
-        wx.showLoading({
-          title: '请开启手机蓝牙',
-        })
-      }
-    })
-    /**
-     * 监听BLE蓝牙连接状态变化
-     */
-    wx.onBLEConnectionStateChange(function (res) {
-      if (res.connected) {
-        // console.log('connected')
-        wx.hideLoading()
-        wx.showToast({
-          title: '连接成功',
-          icon: 'success',
-          success: function (res) {
-            app.globalData.connectState = true
-          }
-        })
-      } else {
-        // console.log('disconnect')
-        wx.hideLoading()
-        wx.showToast({
-          title: '已断开连接',
-          icon: 'none',
-          success: function (res) {
-            app.globalData.connectState = false
-          }
-        })
-      }
-    })
-    // patientList
-    let patientlist = [{
-      img: '../../icon/tab41.png',
-        _id: 123,
-        // 这里的_id 用来传递参数作用
-        name: 'dy',
-        content: 'Hello World!'
-      },
-      {
-        img: '../../icon/tab41.png',
-        _id: 124,
-        name: 'lyx',
-        content: '赶紧加班!'
-      }
-    ]
-    this.setData({
-      patientlist
-    })
+    this.watchLatestNews()
   },
   onShow: function () {
-    this.get_data({
-      theflag: app.globalData.haveFlag
-    });
+    // this.get_data({
+    //   theflag: app.globalData.haveFlag
+    // });
   },
   onHide: function () {
     app.stopSearchDevs()
@@ -363,9 +260,14 @@ Page({
   startSearchDevs: function () {
     const self = this
     wx.startBluetoothDevicesDiscovery({ // 开启搜索
+      // 不允许重复上报同一设备
+      // services: ['A52D3A26-AC88-FD59-F9CC-72A9577DA478'],
       allowDuplicatesKey: false,
       success: function (res) {
+        console.log(res)
+        // 监听搜索到新设备的事件
         wx.onBluetoothDeviceFound(function (devices) {
+          console.log(devices)
           var isExist = false
           if (devices.deviceId) {
             for (let item of self.customData._devs) {
@@ -399,6 +301,10 @@ Page({
             })
           }
         })
+      },
+      fail: (res) => {
+        console.log("startBluetoothDevicesDiscovery() 调用失败返回")
+        console.log(res)
       }
     })
   },
@@ -420,6 +326,7 @@ Page({
   },
   connect(event) {
     if (app.globalData.BluetoothState) {
+      this.Debug("dev in connect()", event.currentTarget.dataset.dev)
       const deviceId = event.currentTarget.dataset.dev.deviceId
       const deviceName = event.currentTarget.dataset.dev.name
       wx.showLoading({
