@@ -1,6 +1,5 @@
-
 <!--聊天内容-->
-<scroll-view scroll-y="true" class='padding20' style="height:1300rpx;width:auto; padding-bottom:{{isShowModelUp==true?'448':'100'}}rpx;"> 
+<view class='padding20' style="height:955rpx;width:auto; padding-bottom:{{isShowModelUp=='true'?'448':'100'}}rpx "> 
   <block wx:for="{{chatList}}" wx:key="key">
     <view class='weui-flex mb20' wx:if="{{item.time && item.showTime}}">
       <text class='chat_time'>{{item.time}}</text>
@@ -25,8 +24,8 @@
       <image wx:if="{{item.isAdmin==true}}" src='{{item.avatarUrl}}' class='user_img img_chat'></image>
     </view>
   </block> 
-  <view id='bottom' hidden=''></view>
-</scroll-view>
+  <view id='bottom' hidden='' style="height: 50px;"> </view>
+</view>
 
 <!--聊天输入框-->
 <view class='chat_bottom_box'>

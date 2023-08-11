@@ -12,7 +12,7 @@
       <view class="goods_group" wx:for="{{right_contents}}" wx:key="time" wx:for-index="index_right_contents" wx:for-item="item_right_contents">
         <view class="under_factors">
           <view class="bg-h">
-            2023-07-25呼气总量数据
+            {{item_right_contents.time}}呼气总量数据
           </view>
           <view class="tr bg-w">
             <view class="th">时间段</view>

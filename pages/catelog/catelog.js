@@ -9,27 +9,11 @@ Page({
    * 页面的初始数据
    */
   data: {
+    to: "oTvD95GRhDLbf7pkJI-mcDCzWfTk",
+    mine: "oTvD95KyTP9kIUG6eIGrNI_GDVpQ",
     left_list: [],
     patientsOpenID: [],
-    dataOneDay: {
-      time: '2022.11.28',
-      data: [{
-        'FVC': 1,
-        'FEV1': 2,
-        'PEF': 3,
-        'PEFR': 4
-      }, {
-        'FVC': 1,
-        'FEV1': 2,
-        'PEF': 3,
-        'PEFR': 4
-      }, {
-        'FVC': 1,
-        'FEV1': 2,
-        'PEF': 3,
-        'PEFR': 4
-      }]
-    },
+    dataOneDay: {},
     right_contents: [],
     current: 0,
     scrollTOP: 0,
@@ -80,9 +64,9 @@ Page({
     return myseries_Sum
   },
   getPEFR(todayData, cnt) {
-    if(todayData.length == 0) return
+    if (todayData.length == 0) return
     let arr_pef = []
-    for(let i = 0 ; i < cnt ; i++) {
+    for (let i = 0; i < cnt; i++) {
       arr_pef.push(this.max(todayData[i].data))
     }
     let max = this.max(arr_pef)
@@ -93,17 +77,22 @@ Page({
   },
   max(arrData) {
     let pef = 0
-    arrData.sort((a,b) => {return a-b})
+    arrData.sort((a, b) => {
+      return a - b
+    })
     pef = arrData[arrData.length - 1]
     return pef
   },
   min(arrData) {
     let pef = 0
-    arrData.sort((a,b) => {return a-b})
+    arrData.sort((a, b) => {
+      return a - b
+    })
     pef = arrData[0]
     return pef
   },
   getFactors(todayData) {
+    console.log("todayData in getFac", todayData)
     let detail_factors = []
     // 肺活量峰值，L/min
     let myseries_Sum = this.getMyseries_Sum(todayData)
@@ -148,7 +137,8 @@ Page({
   },
   watchAllData() {
     let that = this
-    let id = wx.getStorageSync('open_ID')
+    // let id = wx.getStorageSync('open_ID')
+    let id = this.data.to
     db.collection('dataOneDay').where({
         patientId: id
       })

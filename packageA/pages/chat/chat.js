@@ -135,10 +135,8 @@ Page({
             // 判断显示在左边还是右边
             if (messageList[i]['from'] === myOpenID) messageList[i]['isAdmin'] = true
             else messageList[i]['isAdmin'] = false
+            messageList[i].avatarUrl = that.data.avatarUrl
 
-            // 添加用户的头像 userImage 和 imgUrl
-            let mine = wx.getStorageSync('userInfo')
-            messageList[i].avatarUrl = mine.avatarUrl
             db.collection('users').where({
                 open_ID: anOtherID
               }).get()
@@ -160,61 +158,17 @@ Page({
         }
       })
   },
-  getMessage() {
-    let anOtherID = this.data.to
-    // let myOpenID = this.getOpenID()
-    let myOpenID = this.data.mine
-    var that = this;
-    db.collection('news').where(
-        db.command.or([{
-          from: myOpenID,
-          to: anOtherID
-        }, {
-          from: anOtherID,
-          to: myOpenID
-        }])
-      ).get()
-      .then(res => {
-        let messageList = res.data
-        if (messageList.length == this.data.chatList.length) return
-        messageList.sort(that.compareFn)
-        messageList[0].showTime = true
-        for (let i = 0; i < messageList.length; i++) {
-          // 修改显示的时间
-          let time = messageList[i].time
-          let date = new Date(time)
-          time = date.getTime()
-          messageList[i].time = that.js_date_time(time)
-          // 判断显示在左边还是右边
-          if (messageList[i]['from'] === myOpenID) messageList[i]['isAdmin'] = true
-          else messageList[i]['isAdmin'] = false
-
-          // 添加用户的头像 userImage 和 imgUrl
-          let mine = wx.getStorageSync('userInfo')
-          messageList[i].avatarUrl = this.data.avatarUrl
-          db.collection('users').where({
-              open_ID: anOtherID
-            }).get()
-            .then(res => {
-              let data = res.data[0]
-              messageList[i].userImage = data.avatarUrl
-              that.setData({
-                chatList: messageList
-              })
-              that.pageScrollToBottom()
-            })
-
-          // 事件显示与否
-          if (i == 0) continue
-          messageList[i].showTime = messageList[i].time - messageList[i - 1].time > 300000
-        }
-
-      })
-
-  },
   onLoad: function (options) {
     console.log("options in chat.js of packageA", options)
     var id = options.id;
+    // 如果要测试医生，这里就要取消注释，得到缓存中的数据，否则就用 data 中预设的dy信息
+    // 添加用户的头像 userImage 和 imgUrl
+    // let mine = wx.getStorageSync('userInfo')
+    // let avatarUrl = mine.avatarUrl
+    // this.setData({
+    //   avatarUrl
+    // })
+
     this.watchMessage()
   },
   //打开底部弹框
@@ -264,20 +218,20 @@ Page({
         })
         //关闭弹窗
         that.closeModelUp();
-        that.pageScrollToBottom();
       }
     })
   },
   //界面滚到最底端
   pageScrollToBottom: function () {
-    wx.createSelectorQuery().select('#bottom').boundingClientRect(function (rect) {
-      // console.log(rect.top);
-      // console.log(rect.bottom);
-      // 使页面滚动到底部
-      wx.pageScrollTo({
-        scrollTop: rect.bottom + 200
-      })
-    }).exec()
+    wx.pageScrollTo({
+      selector: '#bottom', // 写法同css选择器
+      success: data => {
+        console.log('scroll success', data); // {errMsg: "pageScrollTo:ok"} 打印的日志信息就很迷惑，明明是操作成功，属性名却叫‘errMsg’
+      },
+      fail: data => {
+        console.log('scroll fail', data)
+      }
+    });
   },
   //预览图片
   previewImage: function (e) {
@@ -305,7 +259,6 @@ Page({
         })
         //关闭弹窗
         that.closeModelUp();
-        that.pageScrollToBottom();
       }
     })
   },
@@ -331,7 +284,6 @@ Page({
       }
     })
     that.closeModelUp();
-    that.pageScrollToBottom();
   },
   //切换是否录音按钮
   btnRecord: function () {
@@ -395,7 +347,6 @@ Page({
     })
     //关闭弹窗
     that.closeModelUp();
-    that.pageScrollToBottom();
   },
   //录音、停止播放
   playRecord: function (e) {
@@ -487,7 +438,6 @@ Page({
         that.setData({
           inputValue: '' //清空输入框
         })
-        that.pageScrollToBottom();
         // 更新最新消息
         console.log("最新消息的 id", res._id)
         that.updateLatestNews(res._id, from, to)

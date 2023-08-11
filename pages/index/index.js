@@ -124,8 +124,7 @@ Page({
   },
   getAnotherId(e) {
     let userId = e.userId
-    let app = getApp()
-    let openId = app.globalData.open_ID
+    let openId = this.data.mine
     return userId === openId ? e.anotherId : e.userId
   },
   getPatientList(data) {

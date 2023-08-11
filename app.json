@@ -1,52 +1,50 @@
 {
+  "lazyCodeLoading": "requiredComponents",
+  "pages": [
+    "pages/login/login",
+    "pages/index/index",
+    "pages/catelog/catelog",
+    "pages/chat/chat"
+  ],
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#1818A7",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [{
+        "pagePath": "pages/index/index",
+        "iconPath": "icon/news.png",
+        "selectedIconPath": "icon/news.png",
+        "text": "咨询"
+      },
+      {
+        "pagePath": "pages/catelog/catelog",
+        "iconPath": "icon/patient_list.png",
+        "selectedIconPath": "icon/patient_list.png",
+        "text": "档案"
+      },
+      {
+        "pagePath": "pages/login/login",
+        "iconPath": "icon/member_center.png",
+        "selectedIconPath": "icon/member_center.png",
+        "text": "个人中心"
+      }
+    ]
+  },
+  "window": {
+    "navigationBarTitleText": "肺功能训练监测",
+    "navigationBarBackgroundColor": "#1818A7",
+    "navigationBarTextStyle": "white",
+    "enablePullDownRefresh": true,
+    "backgroundColor": "#F8F7EE"
+  },
+  "subPackages": [{
+    "root": "packageA",
     "pages": [
-        "pages/login/login",
-        "pages/index/index",
-        "pages/catelog/catelog",
-        "pages/chat/chat"
-    ],
-    "tabBar": {
-      "color": "#7A7E83",
-      "selectedColor": "#1818A7",
-      "borderStyle": "black",
-      "backgroundColor": "#ffffff",
-      "list": [
-        {
-          "pagePath": "pages/index/index",
-          "iconPath": "icon/news.png",
-          "selectedIconPath": "icon/news.png",
-          "text": "咨询"
-        },
-        {
-          "pagePath": "pages/catelog/catelog",
-          "iconPath": "icon/patient_list.png",
-          "selectedIconPath": "icon/patient_list.png",
-          "text": "档案"
-        },
-        {
-          "pagePath": "pages/login/login",
-          "iconPath": "icon/member_center.png",
-          "selectedIconPath": "icon/member_center.png",
-          "text": "个人中心"
-        }
-      ]
-    },
-    "window": {
-        "navigationBarTitleText": "肺功能训练监测",
-        "navigationBarBackgroundColor":"#1818A7",
-        "navigationBarTextStyle": "white",
-        "enablePullDownRefresh": true,
-        "backgroundColor": "#F8F7EE"
-    },
-    "subPackages": [
-        {
-          "root": "packageA",
-          "pages": [
-            "pages/chat/chat",
-            "pages/detail/detail"
-          ]
-        }
-    ],
-    "style": "v2",
-    "sitemapLocation": "sitemap.json"
+      "pages/chat/chat",
+      "pages/detail/detail"
+    ]
+  }],
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
 }
