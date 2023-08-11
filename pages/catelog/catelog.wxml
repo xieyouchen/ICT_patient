@@ -9,8 +9,11 @@
       </view>
     </scroll-view>
     <scroll-view scroll-y class="right" scroll-top="{{scrollTOP}}" >
-      <view class="goods_group" wx:for="{{right_contents}}" wx:for-index="index1" wx:for-item="item" >
+      <view class="goods_group" wx:for="{{right_contents}}" wx:key="time" wx:for-index="index_right_contents" wx:for-item="item_right_contents">
         <view class="under_factors">
+          <view class="bg-h">
+            2023-07-25呼气总量数据
+          </view>
           <view class="tr bg-w">
             <view class="th">时间段</view>
             <view class="th">FEV1(L)</view>
@@ -18,7 +21,7 @@
             <view class="th ">PEFR(%)</view>
           </view>
           <scroll-view scroll-y class="table" style="height:25%" scroll-into-view="{{toView}}" scroll-with-animation="true">
-            <block wx:for="{{detail_factors}}" wx:key="{{index}}">
+            <block wx:for="{{detail_factors[index_right_contents]}}" wx:key="index">
               <view class="tr bg-g" wx:if="{{index % 2 == 0}}">
                 <view class="td">{{item.tag}}</view>
                 <view class="td">{{item.data[0]}}</view>
@@ -36,12 +39,9 @@
             <view id="toView"></view>
           </scroll-view>
         </view>
-        <image src="cloud://iot-8gzcpk60587cea1b.696f-iot-8gzcpk60587cea1b-1314055828/image-20230725130234524.png" alt="" mode="widthFix" style="height: 150px; width: 250px;"/>
+        <image src="{{item_right_contents.img}}" alt="" mode="widthFix" style="height: 150px; width: 250px;"/>
+        <image src="{{item_right_contents.imgSum}}" alt="" mode="widthFix" style="height: 150px; width: 250px;"/>
         <view class="under">
-          <!-- {{detail.year}}-{{detail.month}}-{{detail.day}} -->
-          <view class="bg-h">
-            2023-07-25呼气总量数据
-          </view>
           <view class="tr bg-w">
             <view class="th">时间段</view>
             <view class="th">第0.2s</view>
@@ -51,7 +51,7 @@
             <view class="th ">第1.0s</view>
           </view>
           <scroll-view scroll-y class="table" style="height:25%" scroll-into-view="{{toView}}" scroll-with-animation="true">
-            <block wx:for="{{detail.today}}" wx:key="{{index}}">
+            <block wx:for="{{detail[index_right_contents].today}}" wx:key="index">
               <view class="tr bg-g" wx:if="{{index % 2 == 0}}">
                 <view class="td">{{item.tag}}</view>
                 <view class="td">{{item.data[1]}}</view>
@@ -75,32 +75,4 @@
       </view>
     </scroll-view>
   </view>
-  <!-- 病人 -->
-  <!-- 参数命名和医生的完全一样，需要修改一下各自的逻辑，因为样式是一样的不影响就直接搬过来了 -->
-  <!-- <view class="cate_container">
-        <scroll-view scroll-y class="left">
-            <view class="menu_item {{current===index?'active':''}}" wx:for="{{left_list}}" wx:key="*this" bindtap="handleindex" data-index="{{index}}">
-                {{item}}
-            </view>
-        </scroll-view>
-        <scroll-view scroll-y class="right" scroll-top="{{scrollTOP}}">
-            <view class="goods_group" wx:for="{{right_content}}" wx:for-index="index1" wx:for-item="item1">
-                <view class="goods_title">
-                    <view class="delimiter">
-                        {{item1.cat_name}}
-                    </view>
-                </view>
-                <view class="goods_list">
-                    <navigator wx:for="{{item1.children}}" wx:for-index="index2" wx:for-item="item2" wx:key="cat_id">
-                        <image class="" src="{{item2.cat_icon}}" mode="widthFix">
-
-                        </image>
-                        <view class="goods_name">
-                            {{item2.cat_name}}
-                        </view>
-                    </navigator>
-                </view>
-            </view>
-        </scroll-view>
-    </view> -->
 </view>

@@ -30,7 +30,6 @@ Page({
         'PEFR': 4
       }]
     },
-    right_content: [],
     right_contents: [],
     current: 0,
     scrollTOP: 0,
@@ -54,48 +53,185 @@ Page({
   },
   getToDaySplice(time) {
     let year = time.substring(1, 5)
-    let month = time.substring(5,7)
+    let month = time.substring(5, 7)
     let day = time.substring(7)
     return year + '.' + month + '.' + day
+  },
+  // 计算PEF肺活量值用的数组数据，用得到的吹气数据，两个数据之差作为每个时间段的PEF
+  getMyseries_Sum(today) {
+    let myseries_Sum = [];
+    console.log("today in getMyseries_Sum()", today)
+    if (today != null)
+      for (var i = 0; i < today.length; i++) {
+        var tmp = {};
+        tmp["name"] = today[i].tag;
+        tmp["type"] = 'line';
+        tmp["smooth"] = true;
+        let data_sum = [0]
+        let dataTmp = today[i].data
+        for (let i = 2; i < dataTmp.length; i++) {
+          let num = dataTmp[i] - dataTmp[i - 1]
+          num = parseInt(num / 0.045 * 15)
+          data_sum.push(num)
+        }
+        tmp["data"] = data_sum;
+        myseries_Sum.push(tmp);
+      }
+    return myseries_Sum
+  },
+  getPEFR(todayData, cnt) {
+    if(todayData.length == 0) return
+    let arr_pef = []
+    for(let i = 0 ; i < cnt ; i++) {
+      arr_pef.push(this.max(todayData[i].data))
+    }
+    let max = this.max(arr_pef)
+    let min = this.min(arr_pef)
+    let res = 2 * (max - min) / (max + min) * 100
+    res = parseFloat(res.toFixed(2))
+    return res
+  },
+  max(arrData) {
+    let pef = 0
+    arrData.sort((a,b) => {return a-b})
+    pef = arrData[arrData.length - 1]
+    return pef
+  },
+  min(arrData) {
+    let pef = 0
+    arrData.sort((a,b) => {return a-b})
+    pef = arrData[0]
+    return pef
+  },
+  getFactors(todayData) {
+    let detail_factors = []
+    // 肺活量峰值，L/min
+    let myseries_Sum = this.getMyseries_Sum(todayData)
+    console.log("myseries_Sum", myseries_Sum)
+    // 以下得到 detail_factor，最后的渲染数据
+    for (let i = 0; i < todayData.length; i++) {
+      let e = todayData[i]
+      // 如果是中午或者晚上数据为空，那么就跳出循环
+      if (e.data.length == 1) break
+      let dataTmp = e.data
+      let fev1 = dataTmp[dataTmp.length - 1] - dataTmp[0]
+      let morning_Or_noon_Or_night = myseries_Sum[i]
+      console.log("早或中或晚的数据", morning_Or_noon_Or_night)
+      let pef = ""
+      // 计算 pefr
+      let pefr = this.getPEFR(myseries_Sum, i + 1)
+      if (morning_Or_noon_Or_night) {
+        let arrData = myseries_Sum[i].data
+        pef = this.max(arrData)
+      }
+      let tag = e.tag
+      let data = []
+      data.push(fev1)
+      data.push(pef)
+      data.push(pefr)
+      detail_factors.push({
+        tag,
+        data
+      })
+    }
+    return detail_factors
+  },
+  computeDetail_Factors(detail) {
+    let detail_factors = []
+    for (let i = 0; i < detail.length; i++) {
+      let factor = this.getFactors(detail[i].today)
+      detail_factors.push(factor)
+    }
+    this.setData({
+      detail_factors
+    })
+  },
+  watchAllData() {
+    let that = this
+    let id = wx.getStorageSync('open_ID')
+    db.collection('dataOneDay').where({
+        patientId: id
+      })
+      .watch({
+        onChange: function (snapshot) {
+          console.log('snapshot', snapshot)
+          let data = snapshot.docs
+          data.sort(that.compareFn)
+          // console.log("res of all data after sorting in login.js", data)
+          that.setData({
+            dataAll: data
+          })
+          that.dealAllDataToDetails(data)
+        },
+        onError: function (err) {
+          console.error('the watch closed because of error', err)
+        }
+      })
+  },
+  addLastNum(data) {
+    data['morning'].push(data['morning'][5])
+    data['noon'].push(data['noon'][5])
+    data['night'].push(data['night'][5])
+    return data
+  },
+  getTimeSplice(time) {
+    let res = {
+      year: time.slice(1, 5),
+      month: time.slice(5, 7),
+      day: time.slice(7)
+    }
+    return res
+  },
+  getDataOneDay(index) {
+    let data = this.data.dataAll[index]
+    data = this.addLastNum(data)
+    console.log("data after addLastNum()", data)
+    let time = this.getTimeSplice(data['time'])
+    let dataToday = {
+      today: [{
+          img: data['img'],
+          data: data['morning'],
+          tag: '早'
+        },
+        {
+          data: data['noon'],
+          tag: '中'
+        },
+        {
+          data: data['night'],
+          tag: '晚'
+        }
+      ],
+      year: time['year'],
+      month: time['month'],
+      day: time['day']
+    }
+    return dataToday
+  },
+  dealAllDataToDetails(data) {
+    let detail = []
+    for (let i = 0; i < data.length; i++) {
+      detail.push(this.getDataOneDay(i))
+    }
+    this.setData({
+      detail
+    })
+    this.computeDetail_Factors(detail)
   },
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-    // 找所有的患者
-    let detail_factors = [
-      {
-        tag: '早',
-        data: [4.23, 463, 0]
-      },{
-        tag: '中',
-        data: [3.28, 463, 21.53]
-      }
-    ]
-    let detail = {
-      today: [
-        {
-          tag: '早',
-          data: [0, 0.32, 1.17, 2.48, 3.87, 4.23]
-        },{
-          tag: '中',
-          data: [0, 0.36, 1.17, 2.29, 3.24, 3.28]
-        }
-      ]
-    }
-    this.setData({
-      detail_factors,
-      detail
-    })
+    this.watchAllData()
     db.collection('users').get()
       .then(res => {
         console.log("all users", res)
         let data = res.data
-        for(let i = 0 ; i < data.length ; i++) {
+        for (let i = 0; i < data.length; i++) {
           let user = data[i]
           let left_list = this.data.left_list
           let patientsOpenID = this.data.patientsOpenID
-          if(user.nickName == "Hypnotic.") continue
+          if (user.nickName == "Hypnotic.") continue
           patientsOpenID.push(user.open_ID)
           left_list.push(user.nickName)
           this.setData({
@@ -110,22 +246,23 @@ Page({
         patientsID.forEach(patientId => {
           // 每个患者的数据显示在右边
           db.collection('dataOneDay').where({
-            patientId
-          }).get()
-          .then(res => {
-            console.log("all data of one patient", res)
-            let right_contents = this.data.right_contents
-            let data = res.data
-            data.forEach(dataOneDay => {
-              right_contents.push({
-                img: dataOneDay.img,
-                time: this.getToDaySplice(dataOneDay.time)
+              patientId
+            }).get()
+            .then(res => {
+              console.log("all data of one patient", res)
+              let right_contents = this.data.right_contents
+              let data = res.data
+              data.forEach(dataOneDay => {
+                right_contents.push({
+                  img: dataOneDay.img,
+                  imgSum: dataOneDay.imgSum,
+                  time: this.getToDaySplice(dataOneDay.time)
+                })
+              });
+              this.setData({
+                right_contents
               })
-            });
-            this.setData({
-              right_contents
             })
-          })
         });
       })
   },
