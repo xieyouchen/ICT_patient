@@ -135,6 +135,30 @@ Page({
       detail_factors
     })
   },
+  compareFn(a, b) {
+    if (a.time < b.time) {
+      return 1;
+    }
+    if (a.time > b.time) {
+      return -1;
+    }
+    // a 一定等于 b
+    return 0;
+  },
+  dealAllDataTo_right_contents(data) {
+    let right_contents = []
+    for(let i = 0 ; i < data.length ; i++) {
+      let dataOneDay = data[i]
+      right_contents.push({
+        img: dataOneDay.img,
+        imgSum: dataOneDay.imgSum,
+        time: this.getToDaySplice(dataOneDay.time)
+      })
+    }
+    this.setData({
+      right_contents
+    })
+  },
   watchAllData() {
     let that = this
     // let id = wx.getStorageSync('open_ID')
@@ -152,6 +176,7 @@ Page({
             dataAll: data
           })
           that.dealAllDataToDetails(data)
+          that.dealAllDataTo_right_contents(data)
         },
         onError: function (err) {
           console.error('the watch closed because of error', err)
@@ -211,8 +236,9 @@ Page({
   /**
    * 生命周期函数--监听页面加载
    */
-  onLoad: function (options) {
+  onLoad: function () {
     this.watchAllData()
+    // 找到所有的病人
     db.collection('users').get()
       .then(res => {
         console.log("all users", res)
@@ -221,7 +247,7 @@ Page({
           let user = data[i]
           let left_list = this.data.left_list
           let patientsOpenID = this.data.patientsOpenID
-          if (user.nickName == "Hypnotic.") continue
+          if (user._openid == this.data.mine) continue
           patientsOpenID.push(user.open_ID)
           left_list.push(user.nickName)
           this.setData({
@@ -229,31 +255,6 @@ Page({
             patientsOpenID
           })
         }
-      })
-      .then(() => {
-        let patientsID = this.data.patientsOpenID
-        console.log(patientsID)
-        patientsID.forEach(patientId => {
-          // 每个患者的数据显示在右边
-          db.collection('dataOneDay').where({
-              patientId
-            }).get()
-            .then(res => {
-              console.log("all data of one patient", res)
-              let right_contents = this.data.right_contents
-              let data = res.data
-              data.forEach(dataOneDay => {
-                right_contents.push({
-                  img: dataOneDay.img,
-                  imgSum: dataOneDay.imgSum,
-                  time: this.getToDaySplice(dataOneDay.time)
-                })
-              });
-              this.setData({
-                right_contents
-              })
-            })
-        });
       })
   },
 
