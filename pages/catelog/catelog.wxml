@@ -1,4 +1,3 @@
-
 <view class="cate">
   <!-- 医生 -->
   <view class="cate_container">
@@ -8,8 +7,9 @@
         {{item}}
       </view>
     </scroll-view>
-    <scroll-view scroll-y class="right" scroll-top="{{scrollTOP}}" >
-      <view class="goods_group" wx:for="{{right_contents}}" wx:key="time" wx:for-index="index_right_contents" wx:for-item="item_right_contents">
+    <scroll-view scroll-y class="right" scroll-top="{{scrollTOP}}">
+      <view class="goods_group" wx:for="{{right_contents}}" wx:key="time" wx:for-index="index_right_contents"
+        wx:for-item="item_right_contents">
         <view class="under_factors">
           <view class="bg-h">
             {{item_right_contents.time}}呼气总量数据
@@ -19,28 +19,24 @@
             <view class="th">FEV1(L)</view>
             <view class="th">PEF(L/min)</view>
             <view class="th ">PEFR(%)</view>
+            <view class="th ">状态</view>
           </view>
-          <scroll-view scroll-y class="table" style="height:25%" scroll-into-view="{{toView}}" scroll-with-animation="true">
+          <scroll-view scroll-y class="table" style="height:25%" scroll-into-view="{{toView}}"
+            scroll-with-animation="true">
             <block wx:for="{{detail_factors[index_right_contents]}}" wx:key="index">
-              <view class="tr bg-g" wx:if="{{index % 2 == 0}}">
+              <view class="tr bg-g">
                 <view class="td">{{item.tag}}</view>
                 <view class="td">{{item.data[0]}}</view>
-                <view class="td">{{item.data[1]}}</view>
+                <view class="td" style="color: {{item.color}}">{{item.data[1]}}</view>
                 <view class="td">{{item.data[2]}}</view>
-        
-              </view>
-              <view class="tr" wx:else>
-                <view class="td">{{item.tag}}</view>
-                <view class="td">{{item.data[0]}}</view>
-                <view class="td">{{item.data[1]}}</view>
-                <view class="td">{{item.data[2]}}</view>
+                <view class="td" style="color: {{item.color}}">{{item.state}}</view>
               </view>
             </block>
             <view id="toView"></view>
           </scroll-view>
         </view>
-        <image src="{{item_right_contents.img}}" alt="" mode="widthFix" style="height: 150px; width: 250px;"/>
-        <image src="{{item_right_contents.imgSum}}" alt="" mode="widthFix" style="height: 150px; width: 250px;"/>
+        <image src="{{item_right_contents.img}}" alt="" mode="widthFix" style="height: 150px; width: 250px;" />
+        <image src="{{item_right_contents.imgSum}}" alt="" mode="widthFix" style="height: 150px; width: 250px;" />
         <view class="under">
           <view class="tr bg-w">
             <view class="th">时间段</view>
@@ -50,7 +46,8 @@
             <view class="th">第0.8s</view>
             <view class="th ">第1.0s</view>
           </view>
-          <scroll-view scroll-y class="table" style="height:25%" scroll-into-view="{{toView}}" scroll-with-animation="true">
+          <scroll-view scroll-y class="table" style="height:25%" scroll-into-view="{{toView}}"
+            scroll-with-animation="true">
             <block wx:for="{{detail[index_right_contents].today}}" wx:key="index">
               <view class="tr bg-g" wx:if="{{index % 2 == 0}}">
                 <view class="td">{{item.tag}}</view>

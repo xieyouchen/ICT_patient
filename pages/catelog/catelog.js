@@ -9,6 +9,16 @@ Page({
    * 页面的初始数据
    */
   data: {
+    state: [ {
+      text: '正常',
+      color: 'green'
+    }, {
+      text: '警戒',
+      color: '#FEC93E'
+    }, {
+      text: '建议就医',
+      color: 'red'
+    }],
     to: "oTvD95GRhDLbf7pkJI-mcDCzWfTk",
     mine: "oTvD95KyTP9kIUG6eIGrNI_GDVpQ",
     left_list: [],
@@ -91,6 +101,21 @@ Page({
     pef = arrData[0]
     return pef
   },
+  getStateByPEF(pef) {
+    // 以 550 为标准值， 低于 100-80 正常，80-60预警，60以下不正常
+    let state = ""
+    if(pef >= 550*0.8) state = this.data.state[0].text
+    else if(pef >= 550*0.6) state = this.data.state[1].text
+    else state = this.data.state[2].text
+    return state
+  },
+  getColorByPEF(pef) {
+    let color = ""
+    if(pef >= 550*0.8) color = this.data.state[0].color
+    else if(pef >= 550*0.6) color = this.data.state[1].color
+    else color = this.data.state[2].color
+    return color
+  },
   getFactors(todayData) {
     console.log("todayData in getFac", todayData)
     let detail_factors = []
@@ -107,11 +132,15 @@ Page({
       let morning_Or_noon_Or_night = myseries_Sum[i]
       console.log("早或中或晚的数据", morning_Or_noon_Or_night)
       let pef = ""
+      let state = ""
+      let color = ""
       // 计算 pefr
       let pefr = this.getPEFR(myseries_Sum, i + 1)
       if (morning_Or_noon_Or_night) {
         let arrData = myseries_Sum[i].data
         pef = this.max(arrData)
+        state = this.getStateByPEF(pef)
+        color = this.getColorByPEF(pef)
       }
       let tag = e.tag
       let data = []
@@ -120,7 +149,9 @@ Page({
       data.push(pefr)
       detail_factors.push({
         tag,
-        data
+        data,
+        state,
+        color
       })
     }
     return detail_factors
